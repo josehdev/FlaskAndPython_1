@@ -156,12 +156,21 @@ def upload_azlib_post():
     file_name = file.filename
     file_content = file.read()
 
-    storageAccUrl = 'DefaultEndpointsProtocol=https;AccountName=owjhstorageaccount1a;EndpointSuffix=core.windows.net'
+    my_dev_storageAccount = 'DefaultEndpointsProtocol=https;AccountName=owigseusnemodev;EndpointSuffix=core.windows.net'
+    umb_dev_storageAccount = 'DefaultEndpointsProtocol=https;AccountName=igseusnemodev;AccountKey=ZCVVl4UfLmMEamlZaqG5b1smJs/GXMgB37QyNtuKlvKyAy2R5NaaMHtagoI0Ofi3M1RPj7EzcJIp+AStKFcTbg==;EndpointSuffix=core.windows.net'
+
+    target = request.form['target']
+
+    if target == 'umbDev':
+        storageAccUrl = umb_dev_storageAccount
+    else:
+        storageAccUrl = my_dev_storageAccount
+
     credential = DefaultAzureCredential()
 
     blobServiceClient = BlobServiceClient.from_connection_string(storageAccUrl, credential)
 
-    container_name = 'test-container-1'
+    container_name = 'nemo-manifest-submissions'
     blob_client = blobServiceClient.get_blob_client(container_name, file_name)
 
     default_metadata = {
@@ -174,9 +183,9 @@ def upload_azlib_post():
     }
 
     try:
-        blob_client.upload_blob(file_content)
-        blob_client.set_blob_metadata(default_metadata)
+        blob_client.upload_blob(file_content, metadata=default_metadata, overwrite=True)
+        #blob_client.set_blob_metadata(default_metadata)
 
-        return f'File {file_name} uploaded successfully.'
+        return f'File {file_name} uploaded successfully to {target}'
     except Exception as e:
-        return f'Failed to upload file: {str(e)}', 400
+        return f'Failed to upload file: {str(e)} to {target}', 400
